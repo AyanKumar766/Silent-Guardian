@@ -43,9 +43,9 @@
 3.  **Configure Environment**
     Create a `.env.local` file in the root directory and add your API Key:
     ```bash
-    GEMINI_API_KEY=AIzaSyDZj7bmKEpRWj116ToI8ngNRZsrRyheU1E
+    GEMINI_API_KEY=YOUR_API_KEY_HERE
     ```
-    *(Note: Replace with your actual key if different)*
+    *(Note: Get this from Google AI Studio)*
 
 4.  **Run Development Server**
     ```bash
