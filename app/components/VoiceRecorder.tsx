@@ -129,6 +129,12 @@ export function VoiceRecorder({ onProcessingComplete, onTranscriptionComplete, o
     }, [cleanup]);
 
     const transcribeWithBackend = async (blob: Blob): Promise<string | null> => {
+        // PRODUCTION CHECK: If not on localhost, skip the local backend 
+        // to avoid Mixed Content / Network Errors in Vercel.
+        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            return null;
+        }
+
         // Don't send tiny blobs (likely silence)
         if (blob.size < 1000) return null;
 
