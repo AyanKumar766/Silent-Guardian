@@ -52,13 +52,34 @@ export function analyzeStress(buffer: AudioBuffer): VoiceStressMetrics {
     }
 
     // 3. Compute Metrics
-    const pitchVariance = calculateStandardDeviation(pitches);
-    const energyVariance = calculateStandardDeviation(energies);
+    // Calculate Mean first to normalize variance (Coefficient of Variation)
+    const pitchMean = pitches.length > 0 ? pitches.reduce((a, b) => a + b, 0) / pitches.length : 1;
+    const energyMean = energies.length > 0 ? energies.reduce((a, b) => a + b, 0) / energies.length : 1;
+
+    // SILENCE GATE: If average energy is too low, assume silence/noise and return 0
+    if (energyMean < 0.02) {
+        return {
+            pitchVariance: 0,
+            energyVariance: 0,
+            speakingRate: 0,
+            duration: buffer.duration
+        };
+    }
+
+    const pitchStdDev = calculateStandardDeviation(pitches, pitchMean);
+    const energyStdDev = calculateStandardDeviation(energies, energyMean);
+
     const speakingRate = estimateSpeakingRate(energies, buffer.duration);
 
+    // Normalize: CV = StdDev / Mean
+    // This gives a ratio (e.g., 0.2 for 20% variation) instead of raw Hz
+    const pitchCV = pitchMean > 0 ? pitchStdDev / pitchMean : 0;
+    const energyCV = energyMean > 0 ? energyStdDev / energyMean : 0;
+
     return {
-        pitchVariance: Number.isNaN(pitchVariance) ? 0 : pitchVariance,
-        energyVariance: Number.isNaN(energyVariance) ? 0 : energyVariance,
+        // Clamp to sensible 0-1 range for UI (though >1 is possible with extreme noise)
+        pitchVariance: Number.isNaN(pitchCV) ? 0 : Math.min(1, pitchCV),
+        energyVariance: Number.isNaN(energyCV) ? 0 : Math.min(1, energyCV),
         speakingRate: Number.isNaN(speakingRate) ? 0 : speakingRate,
         duration: buffer.duration
     };
@@ -120,10 +141,13 @@ function detectPitchAutocorrelation(samples: Float32Array, sampleRate: number): 
  * Calculates Standard Deviation of an array of numbers.
  * Used for Jitter (Pitch Variance) and Shimmer (Energy Variance).
  */
-function calculateStandardDeviation(data: number[]): number {
+function calculateStandardDeviation(data: number[], preCalculatedMean?: number): number {
     if (data.length === 0) return 0;
 
-    const mean = data.reduce((a, b) => a + b, 0) / data.length;
+    const mean = preCalculatedMean !== undefined
+        ? preCalculatedMean
+        : data.reduce((a, b) => a + b, 0) / data.length;
+
     const variance = data.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / data.length;
 
     return Math.sqrt(variance);

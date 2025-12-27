@@ -27,14 +27,24 @@ interface SilentGuardianDB extends DBSchema {
       value: any;
     };
   };
+  chatHistory: {
+    key: number;
+    value: {
+      id?: number;
+      role: 'user' | 'assistant' | 'system';
+      content: string;
+      timestamp: number;
+    };
+    indexes: { 'by-date': number };
+  };
 }
 
 const DB_NAME = 'silent-guardian-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented version for new store
 
 async function getDB() {
   return openDB<SilentGuardianDB>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
+    upgrade(db, oldVersion) {
       if (!db.objectStoreNames.contains('journals')) {
         const store = db.createObjectStore('journals', { keyPath: 'id', autoIncrement: true });
         store.createIndex('by-date', 'timestamp');
@@ -45,6 +55,10 @@ async function getDB() {
       }
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings', { keyPath: 'key' });
+      }
+      if (!db.objectStoreNames.contains('chatHistory')) {
+        const store = db.createObjectStore('chatHistory', { keyPath: 'id', autoIncrement: true });
+        store.createIndex('by-date', 'timestamp');
       }
     },
   });
@@ -60,6 +74,13 @@ export type VoiceMetrics = {
   id?: number;
   pitchVariance: number;
   energyVariance: number;
+  timestamp: number;
+};
+
+export type ChatMessage = {
+  id?: number;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
   timestamp: number;
 };
 
@@ -104,6 +125,26 @@ export async function saveMetrics(pitchVariance: number, energyVariance: number)
 export async function getMetrics(): Promise<VoiceMetrics[]> {
   const db = await getDB();
   return db.getAllFromIndex('metrics', 'by-date');
+}
+
+/**
+ * Save a chat message.
+ */
+export async function saveChatMessage(role: 'user' | 'assistant' | 'system', content: string): Promise<number> {
+  const db = await getDB();
+  return db.add('chatHistory', {
+    role,
+    content,
+    timestamp: Date.now(),
+  });
+}
+
+/**
+ * Get all chat history sorted by date.
+ */
+export async function getChatHistory(): Promise<ChatMessage[]> {
+  const db = await getDB();
+  return db.getAllFromIndex('chatHistory', 'by-date');
 }
 
 /**

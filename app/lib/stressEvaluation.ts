@@ -37,20 +37,26 @@ export function evaluateStress(input: StressInput): StressResult {
 
     // 2. Sentiment Adjustment
     // We bump the score up/down based on explicit text signals.
+    // KEY CHANGE: We also set a 'minimum floor' for negative tags so calm voice doesn't mask text stress.
+    let minScore = 0;
+
     if (sentimentTag) {
         switch (sentimentTag.toLowerCase()) {
             case 'stress':
             case 'anxiety':
             case 'insomnia':
-                voiceScore += 0.3; // Significant bump
+            case 'concern':
+                voiceScore += 0.3;
+                minScore = 0.45; // Guarantee at least MODERATE
                 break;
             case 'depression':
             case 'hopeless':
-                voiceScore += 0.4; // Major bump
+                voiceScore += 0.4;
+                minScore = 0.5; // Guarantee at least MODERATE+
                 break;
             case 'positivity':
             case 'happy':
-                voiceScore -= 0.2; // Mitigation
+                voiceScore -= 0.2;
                 break;
             case 'neutral':
             default:
@@ -58,8 +64,8 @@ export function evaluateStress(input: StressInput): StressResult {
         }
     }
 
-    // Clamp score 0-1
-    const finalScore = Math.max(0, Math.min(1, voiceScore));
+    // Clamp score 0-1 AND ensure it meets the minimum floor from text analysis
+    const finalScore = Math.max(minScore, Math.min(1, voiceScore));
 
     // 3. Categorization
     // Thresholds: Low < 0.4 <= Moderate < 0.7 <= High

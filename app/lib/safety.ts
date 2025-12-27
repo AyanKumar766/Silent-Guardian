@@ -32,7 +32,10 @@ export interface SafetyAction {
 // Configuration Constants (Auditable Configuration)
 const CONFIG = {
     // Text Rules
-    CRISIS_KEYWORDS: ['suicide', 'kill myself', 'end it all', 'die', 'hurt myself'],
+    CRISIS_KEYWORDS: [
+        'suicide', 'kill myself', 'end it all', 'die', 'hurt myself',
+        'want to die', 'no way out', 'better off dead', 'can\'t go on'
+    ],
     NEGATIVE_SENTIMENT_THRESHOLD: -0.6, // From textAnalysis (-1 to 1)
 };
 

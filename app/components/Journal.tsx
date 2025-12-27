@@ -5,9 +5,10 @@ import { saveJournal, getJournals, type JournalEntry } from '../lib/db';
 
 interface JournalProps {
     onEntrySaved?: (text: string) => void;
+    onContentChange?: (text: string) => void;
 }
 
-export function Journal({ onEntrySaved }: JournalProps) {
+export function Journal({ onEntrySaved, onContentChange }: JournalProps) {
     const [entries, setEntries] = useState<JournalEntry[]>([]);
     const [newEntry, setNewEntry] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -15,6 +16,14 @@ export function Journal({ onEntrySaved }: JournalProps) {
     useEffect(() => {
         loadEntries();
     }, []);
+
+    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const text = e.target.value;
+        setNewEntry(text);
+        if (onContentChange) {
+            onContentChange(text);
+        }
+    };
 
     const loadEntries = async () => {
         try {
@@ -59,7 +68,7 @@ export function Journal({ onEntrySaved }: JournalProps) {
                 <h2 className="text-lg font-medium text-zinc-800 dark:text-zinc-100">New Entry</h2>
                 <textarea
                     value={newEntry}
-                    onChange={(e) => setNewEntry(e.target.value)}
+                    onChange={handleChange}
                     placeholder="Write your thoughts..."
                     className="w-full h-32 p-3 border border-zinc-300 dark:border-zinc-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 bg-zinc-50 dark:bg-zinc-800 transition-colors"
                 />
