@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "The Silent Guardian",
   description: "Offline-First Privacy-Focused Mental Health Journal",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
