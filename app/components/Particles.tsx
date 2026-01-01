@@ -123,13 +123,20 @@ const Particles: React.FC<ParticlesProps> = ({
         const container = containerRef.current;
         if (!container) return;
 
-        const renderer = new Renderer({ dpr: pixelRatio, depth: false, alpha: true });
-        const gl = renderer.gl;
-        container.appendChild(gl.canvas);
-        gl.clearColor(0, 0, 0, 0);
+        let renderer: Renderer, gl: any, camera: Camera;
 
-        const camera = new Camera(gl, { fov: 15 });
-        camera.position.set(0, 0, cameraDistance);
+        try {
+            renderer = new Renderer({ dpr: pixelRatio, depth: false, alpha: true });
+            gl = renderer.gl;
+            container.appendChild(gl.canvas);
+            gl.clearColor(0, 0, 0, 0);
+
+            camera = new Camera(gl, { fov: 15 });
+            camera.position.set(0, 0, cameraDistance);
+        } catch (error) {
+            console.warn("WebGL initialization failed, disabling particles:", error);
+            return;
+        }
 
         const resize = () => {
             const width = container.clientWidth;
