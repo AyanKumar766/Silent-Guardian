@@ -348,31 +348,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Text Sentiment Bar */}
-              <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-100 dark:border-zinc-800">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">Text Mood</span>
-                  <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                    {isProcessingAudio ? (
-                      <span className="animate-pulse text-emerald-500">Analyzing...</span>
-                    ) : (
-                      insights.textResult ? (insights.textResult.score > 0 ? 'Positive' : insights.textResult.score < 0 ? 'Negative' : 'Neutral') : '--'
-                    )}
-                  </span>
-                </div>
-                <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-1.5 overflow-hidden relative">
-                  {/* Centered Neutral Marker */}
-                  <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-zinc-300 dark:bg-zinc-600 z-10" />
-                  {/* Bar mapped from -1..1 to 0..100% */}
-                  <div
-                    className={`h-1.5 rounded-full transition-all duration-500 ${insights.textResult?.score && insights.textResult.score > 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}
-                    style={{
-                      width: `${Math.abs(insights.textResult?.score || 0) * 50}%`,
-                      marginLeft: `${(insights.textResult?.score || 0) < 0 ? 50 - Math.abs((insights.textResult?.score || 0) * 50) : 50}%`
-                    }}
-                  ></div>
-                </div>
-              </div>
+
 
               {/* SUGGESTIONS CARD REMOVED (Replaced by Modal) */}
             </div>
